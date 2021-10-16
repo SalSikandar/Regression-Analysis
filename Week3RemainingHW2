@@ -1,0 +1,165 @@
+## 	2. Simulation from the SLR model 	##
+##################################################
+rm(list=ls())
+
+n <- 100
+sigma2_X <- 2
+sigma2_e <- 3
+
+
+## try running this a few times with
+## different data to see how things change...
+x <- rnorm(100,0,sqrt(sigma2_X))
+y <- 2.5 - x + rnorm(100,0,sqrt(sigma2_e))
+reg <- lm(y~x)
+
+## (a) plot data and regression line
+plot(x,y, pch=20, col=grey(.5), ylim=c(-5,10))
+abline(a=2.5, b=-1)
+
+## (b) subdivide the data (this code only works for n=100)
+sub1 <- data.frame(x=x[1:25], y=y[1:25])
+sub2 <- data.frame(x=x[26:100], y=y[26:100])
+reg1 <- lm(y~x, data=sub1)
+reg2 <- lm(y~x, data=sub2)
+abline(a=reg1$coef[1], b=reg1$coef[2], col=2)
+abline(a=reg2$coef[1], b=reg2$coef[2], col=3)
+legend("topleft", col=c(2,3), lwd=2, legend=c("n=25","n=75"))
+#whythey are not the same: remake the scatter plot with colors showing which data points are used in which line
+subset <- c(rep(1,times=25), rep(2,times=75))
+plot(x,y, pch=20, col=(subset+1))
+abline(a=2.5, b=-1)
+abline(a=reg1$coef[1], b=reg1$coef[2], col=2)
+abline(a=reg2$coef[1], b=reg2$coef[2], col=3)
+legend("topright", col=c(2,3), lwd=2, legend=c("n=25","n=75"))
+
+
+## (c): the true marginal mean is 2.5 - 1*E[X] = 2.5
+margmean <- 2.5
+samplemean <- mean(y)
+cbind(margmean, samplemean)
+
+## (d) prediction intervals
+
+##The data, true model, and regression line
+plot(x,y, pch=20, col=grey(.5), ylim=c(-5,10))
+abline(a=2.5, b=-1, lwd=1.5, col="blue")
+abline(reg, lwd=1.5, col="red")
+
+## (d)(i)
+## first the actual PI, from lecture, that includes all sources of uncertainty.
+pi <- predict(reg, interval="prediction", level=0.90)
+lines(sort(x), pi[order(x), "lwr"], lwd=2, col="purple", lty=2)
+lines(sort(x), pi[order(x), "upr"], lwd=2, col="purple", lty=2)
+#What's with sort(x) and order(x)? Try the above two -lines- commands with "x" in place of "sort(x)" and delete "order(x)" and see what happens. The command -lines- connects dots in whatever order you feed them in.
+
+
+## (d)(ii)
+## count the number outside the real 90% interval
+outside <- (y > pi[,"upr"]) | (y < pi[,"lwr"])
+sum(outside)/n #returns 0.1 on average, but lots of variation of course
+
+## Just for fun, lets label the plot with this
+points(x,y, pch=20, col=(outside+1), ylim=c(-5,10))
+mtext(side=3, line=1, paste("SLR simulation example: ",
+                            (sum(outside)/n)*100, "% outside the 90% interval", sep=""))
+## mtext adds text to the margins ('line' is how far out, side 3 is top)
+## and paste puts text and values together (seperated by 'sep').
+
+## (d)(iii)
+## The "true" prediction interval.
+#recall the formula for TRUE (assume beta_0, beta_1, sigma^2 are known) prediction intervals. Think about what the intercept and slope of the line should be
+abline(a=2.5 + 1.65*sqrt(sigma2_e), b=-1 , lty=2, col="black")
+abline(a=2.5 - 1.65*sqrt(sigma2_e), b=-1 , lty=2, col="black")
+legend("topright", col=c("black","purple"), lwd=2,lty=2, legend=c("True 90%","Prediction 90%"))
+#There are many other ways to get the same lines
+#alternative 1
+#     line1 <- 2.5 - x + 1.65*sqrt(sigma2_e)
+#     line2 <- 2.5 - x - 1.65*sqrt(sigma2_e)
+#     lines(sort(x), line1[order(x)], lty=2)
+#     lines(sort(x),  line2[order(x)], lty=2)
+#alternative 2
+#     xx <- c(min(x), max(x))
+#     lines(xx, 2.5 - xx + qnorm(.95, sd=sqrt(sigma2_e)), lty=2)
+#     lines(xx, 2.5 - xx + qnorm(.05, sd=sqrt(sigma2_e)), lty=2)
+
+## (d)(iv)
+## count the number outside the TRUE 90% interval
+outside.true <- (y > 2.5 - x + qnorm(.95, sd=sqrt(sigma2_e))) | (y < 2.5 - x + qnorm(.05, sd=sqrt(sigma2_e)))
+sum(outside.true)/n
+
+## compare them
+c(sum(outside)/n, sum(outside.true)/n)
+
+## (d)(e)
+
+#prepare data
+rm(list=ls())
+
+n <- 500
+sigma2_X <- 3
+sigma2_e <- 2
+
+## try running this a few times with
+## different data to see how things change...
+x <- rnorm(500,0,sqrt(sigma2_X))
+y <- 3 - x + rnorm(500,0,sqrt(sigma2_e))
+reg <- lm(y~x)
+
+##plot data and regression line
+plot(x,y, pch=20, col=grey(.5), ylim=c(-5,10))
+abline(a=3, b=-1)
+
+## first the actual PI, from lecture, that includes all sources of uncertainty.
+pi <- predict(reg, interval="prediction", level=0.90)
+lines(sort(x), pi[order(x), "lwr"], lwd=2, col="red", lty=2)
+lines(sort(x), pi[order(x), "upr"], lwd=2, col="red", lty=2)
+
+## The "true" prediction interval.
+abline(a=3 + 1.65*sqrt(sigma2_e), b=-1 , lty=2, col="blue")
+abline(a=3 - 1.65*sqrt(sigma2_e), b=-1 , lty=2, col="blue")
+
+legend("topright", col=c("blue","red"), lwd=2,lty=2, legend=c("True 90%","Prediction 90%"))
+
+## count the number outside the real 90% interval
+outside <- (y > pi[,"upr"]) | (y < pi[,"lwr"])
+
+## count the number outside the TRUE 90% interval
+outside.true <- (y > 2.5 - x + qnorm(.95, sd=sqrt(sigma2_e))) | (y < 2.5 - x + qnorm(.05, sd=sqrt(sigma2_e)))
+sum(outside.true)/n
+
+## compare them
+c(sum(outside)/n, sum(outside.true)/n)
+
+##################################################
+##	 	3. Tractor Regression	 	##
+##################################################
+
+rm(list=ls())
+tractor <- read.csv("tractor.csv")
+attach(tractor)
+
+age <- tractor$age
+cost <- tractor$cost
+
+## (a)
+plot(age, cost, main="tractor maintenance")
+
+## (b)
+fit <- lm(cost ~ age)
+fit$coef
+b1 <- cor(cost,age)*sd(cost)/sd(age)
+b0 <- mean(cost) - mean(age)*b1
+c(b0, b1)
+abline(b0, b1)
+
+## (c) expected cost
+##Using predict command
+predict(fit, newdata=data.frame(age=3), interval="prediction")
+
+## Comparing to the values of cost observed, 
+c(min(cost), max(cost))
+#the bottom of the interval is below all observed values, 
+#even for very young tractors, and the top of the interval is nearly the same as the highest 
+#observed values. So we conclude that our prediction interval is almost useless, we're 95% sure our 
+#cost will be between the highest and lowest! The reason this isn't surprising is because n is so small.
