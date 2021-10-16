@@ -1,0 +1,28 @@
+#Week 3 Homework
+
+library(readr)
+nutrition <- read_csv("Downloads/nutrition.csv")
+
+y <- nutrition$woh
+x <- nutrition$age
+
+#1(a) 
+
+#Plot the data
+plot(x,y,ylab="Boy Weight/Height Ratio", xlab="Boy Age")
+
+#overlay least squares line
+
+abline(lm(y~x), col="red", lty=1, lwd=2)
+
+#input 95% confidence interval
+reg <- lm(y~x)
+pi <- predict(reg, interval="prediction", level=0.95)
+lines(sort(x), pi[order(x), "lwr"], lwd=2, col="blue", lty=1)
+lines(sort(x), pi[order(x), "upr"], lwd=2, col="blue", lty=1)
+
+legend("bottomright", col=c("red","blue"), lwd=2,lty=1, legend=c("LSE Line","95% Prediction"))
+
+#1(b)
+
+#Plot residuals
