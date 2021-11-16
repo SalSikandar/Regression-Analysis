@@ -1,7 +1,7 @@
 #Week 3 Homework
 
 library(readr)
-nutrition <- read_csv("Downloads/nutrition.csv")
+nutrition <- read_csv("/Users/salmansikandar/Documents/Regresion_Analysis/nutrition.csv")
 
 y <- nutrition$woh
 x <- nutrition$age
