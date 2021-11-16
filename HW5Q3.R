@@ -107,6 +107,22 @@ summary(reg8)
 
 # Part f. Partial F Test
 anova(reg4,reg7)
+anova(reg3,reg8)
 
 
 
+# Part G
+# The four models:
+# reg3 <- lm (train$casual ~ train$hours)
+# reg4 <- lm (train$registered ~ train$hours)
+# reg7 <- lm (train$registered ~ train$time_type)
+# reg8 <- lm (train$casual ~ train$time_type)
+
+
+error1 <- predict(reg3, newdata=test)-test$casual
+error2 <- predict(reg4, newdata=test)-test$registered
+error3 <- predict(reg7, newdata=test)-test$registered
+error4 <- predict(reg8, newdata=test)-test$casual
+
+c(error1=mean(error1^2), error4=mean(error4^2)) 
+c(error2=mean(error2^2), error3=mean(error3^2))
